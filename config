@@ -1,0 +1,79 @@
+#!/system/bin/sh
+
+LOCAL_REPO_NAME="https://github.com/Linus-Ishigami/Team-Fortress/"
+LOCAL_COMMIT_ID="$(getprop persist.sys.fortress.ccid)"
+DEVICE_PREFIX="$(getprop persist.sys.fortress.model)"
+DEVICE_INCREMENTAL="$(getprop ro.system.build.version.incremental)"
+CURRENT_COMMIT_ID="$(wget -qO "/sdcard/.ota_config" "https://github.com/Linus-Ishigami/Team-Fortress/${DEVICE_PREFIX}/${DEVICE_INCREMENTAL}/config" && cat /sdcard/.ota_config)"
+BOOL="$(wget -qO "/sdcard/.ota_status" "https://github.com/Linus-Ishigami/Team-Fortress/${DEVICE_PREFIX}/${DEVICE_INCREMENTAL}/status" && cat /sdcard/.ota_status)"
+
+nig() {
+if [[ $(getprop persist.sys.locale) == "en-US" ]]; then
+	true
+elif [[ $(getprop persist.sys.locale) == "pt-BR" ]]; then
+	false
+fi
+}
+
+do_the_requirements() {
+    wget -qO "/data/ota/.${RANDOMSEED}.zip" "https://github.com/Linus-Ishigami/Team-Fortress/pkgs/${CURRENT_COMMIT_ID}"
+	cat >> command << EOF
+	--update_package "/data/ota/${RANDOMSEED}.zip"
+	EOF 
+	rm /sdcard/.ota_config
+	rm /sdcard/.ota_status
+	cp command /cache/recovery/command && chown 0 /cache/recovery/command && chgrp 0 /cache/recovery/command && chmod 0644 /cache/recovery/command
+    nig && printf " - the update requires a reboot, do you want to reboot now? " && read fi || printf " - a atualização requer uma reinicialização, deseja reiniciar agora?" && read fi
+	case "$fi" in
+		y*|Y*)
+		setprop sys.powerctl reboot,recovery
+		;;
+
+		*)
+		echo " - Thank you!"
+		exit 0
+		;;
+		esac
+}
+
+clear
+if [ "$(id -u)" -ne "0" ]; then
+nig && "Root Privilages were required." || "Privilégios de root eram necessários"
+exit
+fi
+
+# let's print our "COOL" banner ig.
+echo "										 "
+echo "   _____          _                     "
+echo "  |  ___|__  _ __| |_ _ __ ___  ___ ___ "
+echo "  | |_ / _ \|  __| __|  __/ _ \/ __/ __|"
+echo " |  _| (_) | |  | |_| | |  __/\__ \__ \"
+echo "|_|  \___/|_|   \__|_|  \___||___/___/"
+echo "                                      "
+echo ""
+
+# let's check if the current id was the same or not.
+$BOOL || nig && "No Changes were made to the rom, please try after a day!" || "Nenhuma alteração foi feita na rom, tente depois de um dia!" 
+$BOOL || exit 0
+
+if [ "${CURRENT_COMMIT_ID}" ==! "${LOCAL_COMMIT_ID}" ]; then
+#nig && printf " - Updates were found, showing changelogs.." && am start -a android.intent.action.VIEW -d "https://github.com/Linus-Ishigami/Team-Fortress/changelogs/oh_walla_i_hate_nigga.log" && sleep 5
+nig && printf " - Do you want to update the rom?" && read fi || printf " - Deseja atualizar o software?"
+
+# SWITCH Operator :
+case "$fi" in
+y*|Y*)
+do_the_requirements
+;;
+
+*)
+nig && "Thank you!" || "Obrigado!"
+exit 0
+;;
+
+esac
+
+else 
+nig && "Okay!" || "OK!"
+exit 0
+fi
