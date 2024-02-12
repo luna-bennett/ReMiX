@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/system/bin/sh
 
 LOCAL_COMMIT_ID="$(getprop persist.sys.fortress.ccid)"
 DEVICE_PREFIX="$(getprop persist.sys.fortress.model)"
