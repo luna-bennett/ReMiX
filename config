@@ -1,9 +1,7 @@
 #!/system/bin/sh
 
-LOCAL_COMMIT_ID="$(getprop persist.sys.fortress.ccid)"
 DEVICE_PREFIX="$(getprop persist.sys.fortress.model)"
 DEVICE_INCREMENTAL="$(getprop ro.system.build.version.incremental)"
-LAST_COMMIT_ID="$(wget -qO "/sdcard/.ota_config" "https://github.com/Linus-Ishigami/Team-Fortress/${DEVICE_PREFIX}/${DEVICE_INCREMENTAL}/config" && cat /sdcard/.ota_config)"
 BOOL="$(wget -qO "/sdcard/.ota_status" "https://github.com/Linus-Ishigami/Team-Fortress/${DEVICE_PREFIX}/${DEVICE_INCREMENTAL}/status" && cat /sdcard/.ota_status)"
 
 nig() {
@@ -17,7 +15,7 @@ fi
 }
 
 do_the_requirements() {
-    wget -qO "/data/ota/.$(head -c 16 /dev/urandom | xxd -p).zip" "https://github.com/Linus-Ishigami/Team-Fortress/pkgs/${DEVICE_PREFIX}_${LAST_COMMIT_ID}"
+    wget -qO "/data/ota/.$(head -c 16 /dev/urandom | xxd -p).zip" "https://github.com/Linus-Ishigami/Team-Fortress/pkgs/update_${DEVICE_PREFIX}_${DEVICE_INCREMENTAL}"
 	#cat >> command << EOF
 	echo "--update_package \"/data/ota/${RANDOMSEED}.zip\" " > ./command
 	#EOF 
@@ -71,7 +69,7 @@ $BOOL || nig && echo "No Changes were made to the rom, please try after a day!"
 $BOOL || nig || echo "Nenhuma alteração foi feita na rom, tente depois de um dia!" 
 $BOOL || exit 0
 
-if [ "${LAST_COMMIT_ID}" -ne "${LOCAL_COMMIT_ID}" ]; then
+$BOOL && {
 #nig && printf " - Updates were found, showing changelogs.." && am start -a android.intent.action.VIEW -d "https://github.com/Linus-Ishigami/Team-Fortress/changelogs/oh_walla_i_hate_nigga.log" && sleep 5
 nig && printf " - Do you want to update the rom?" && read f || printf " - Deseja atualizar o software?" && read f
 
@@ -93,5 +91,5 @@ else
 nig && echo "Okay!" 
 nig || echo "OK\!"
 exit 0
-fi
+}
 ;;
